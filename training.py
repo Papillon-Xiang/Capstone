@@ -1,6 +1,8 @@
 import numpy as np
 from utilis import is_confident_state
 from model import calculate_class_weights
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score
 
 
 def train_xgboost_classifier(xgb_model, X_train, y_train, X_test, y_test):
@@ -41,7 +43,6 @@ def evaluate_model(xgb_model, X_train, X_test, y_train, y_test):
     print(f"Confident states ratio: {np.mean(test_conf):.2%}")
     print(f"Average entropy: {np.mean(test_entropies):.4f}")
 
-    from sklearn.metrics import roc_auc_score
 
     n_classes = len(np.unique(y_train))
 
@@ -55,8 +56,7 @@ def evaluate_model(xgb_model, X_train, X_test, y_train, y_test):
             print(f"  Test AUC: {test_auc:.4f}")
         except:
             print(f"Could not compute AUC for class {i}")
-
-    from sklearn.metrics import accuracy_score
+            
     n_classes = len(np.unique(y_train))
     
     print("\nAccuracy per class:")
@@ -200,9 +200,8 @@ def evaluate_random_short_sequences(
 
     ## Get the AUC and accuracy for each class 
     results = []
-    
-    class_correct = np.zeros(5)
-    class_total = np.zeros(5)
+    all_predictions = []
+    all_true_labels = []
 
     print(f"\nEvaluating {n_samples} random sequences of length {seq_length}:")
 
@@ -215,10 +214,8 @@ def evaluate_random_short_sequences(
         pred_probs = model.predict_proba(patient_features)
         predictions = model.predict(patient_features)
 
-        for true_label, pred_label in zip(patient_labels, predictions):
-            class_total[true_label] += 1
-            if true_label == pred_label:
-                class_correct[true_label] += 1
+        all_predictions.extend(predictions)
+        all_true_labels.extend(patient_labels)
 
         eps = 1e-15
         entropies = -np.sum(pred_probs * np.log(np.clip(pred_probs, eps, 1.0)), axis=1)
@@ -265,19 +262,28 @@ def evaluate_random_short_sequences(
 
         print("\n" + "=" * 65)
 
+    all_predictions = np.array(all_predictions)
+    all_true_labels = np.array(all_true_labels)
+
+    n_classes = len(np.unique(all_true_labels))
     print("\nPer-class Accuracy:")
     print("-" * 30)
-    overall_correct = 0
-    overall_total = 0
-    for c in range(5):
-        acc = class_correct[c] / class_total[c] if class_total[c] > 0 else 0
-        print(f"Class {c}: {acc:.2%} ({int(class_correct[c])}/{int(class_total[c])})")
-        overall_correct += class_correct[c]
-        overall_total += class_total[c]
     
-    overall_acc = overall_correct / overall_total if overall_total > 0 else 0
+    for i in range(n_classes):
+        class_mask = (all_true_labels == i)
+        class_acc = accuracy_score(all_true_labels[class_mask], 
+                                 all_predictions[class_mask])
+        class_correct = np.sum((all_true_labels == i) & (all_predictions == i))
+        class_total = np.sum(all_true_labels == i)
+        
+        print(f"Class {i}: {class_acc:.2%} ({class_correct}/{class_total})")
+    
+    overall_acc = accuracy_score(all_true_labels, all_predictions)
+    overall_correct = np.sum(all_true_labels == all_predictions)
+    overall_total = len(all_true_labels)
     print("-" * 30)
-    print(f"Overall: {overall_acc:.2%} ({int(overall_correct)}/{int(overall_total)})")
+    print(f"Overall: {overall_acc:.2%} ({overall_correct}/{overall_total})")
+
 
     return results
 
