@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def is_confident_state(pred_probs, features):
+def is_confident_state(pred_probs):
     """
     判断是否是confident state
     """
@@ -15,7 +15,7 @@ def is_confident_state(pred_probs, features):
 
     is_confident = entropies < entropy_threshold
 
-    return is_confident, pred_probs, entropies
+    return is_confident, entropies
 
 
 def set_seed(seed):
