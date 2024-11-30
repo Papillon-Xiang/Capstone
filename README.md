@@ -13,3 +13,10 @@ set the max_length = 15
 | lstm with pretrain  |  44.02%  | 43.84%         |0.7808        | 0.7822             |
 | lstm without pretrain | 44.65% | 44.48%         |0.7809        | 0.7845             |
 | baseline            | 35.56%   | 35.52%         | 0.8755       | 0.8811             |
+
+
+set the max_length = 20
+| Model               | Test Set | Short Sequence | Test Entropy | Short Seq Entropy |
+|---------------------|----------|----------------|--------------|--------------------|
+| Decoder only        | 50.12% | 48.92% |    0.7333          |      0.7403              |
+| baseline            | 33.54%   | 33.76%        | 0.9006       | 0.9053             |
