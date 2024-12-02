@@ -1,3 +1,8 @@
+# The action prediction of Sepsis patient 
+There are two actions for sepsis patient: 
+
+
+
 Mean value of lengths: 11.879681587219238\
 Proportion of lengths in range 0-5: 0.04422394532790117\
 Proportion of lengths in range 5-10: 0.20370613746878696\
